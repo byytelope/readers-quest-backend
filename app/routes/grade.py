@@ -23,10 +23,8 @@ async def grade_pronunciation(
         if audio_format != "wav":
             audio_bytes = convert_to_wav(audio_bytes, format=audio_format)
 
-        transcription, phonemes = process_audio(
-            audio_bytes,
-            request.state.ml_models.processor,
-            request.state.ml_models.model,
+        transcription, phonemes, frustration = process_audio(
+            audio_bytes, request.state.ml_models
         )
 
         grade, feedback = calculate_grade(
@@ -36,6 +34,6 @@ async def grade_pronunciation(
             phonemes,
         )
 
-        return {"grade": grade, "frustration": 0, "feedback": feedback}
+        return {"grade": grade, "frustration": frustration, "feedback": feedback}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

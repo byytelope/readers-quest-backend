@@ -18,11 +18,10 @@ class TestPhonemesRecognition(unittest.TestCase):
             if extension != "wav":
                 audio_bytes = convert_to_wav(audio_bytes, format=extension)
 
-        transcription, phonemes = process_audio(
-            audio_bytes, ml_models.processor, ml_models.model
-        )
+        transcription, phonemes, frustration = process_audio(audio_bytes, ml_models)
 
-        print(transcription, phonemes)
+        print(transcription, phonemes, frustration)
 
         self.assertIsInstance(transcription, str)
         self.assertIsInstance(phonemes, str)
+        self.assertIsInstance(frustration, bool)
