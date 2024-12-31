@@ -17,7 +17,7 @@ async def grade_pronunciation(
     """
     try:
         assert isinstance(audio.content_type, str)
-        audio_format = audio.content_type.split("/x-")[-1]
+        audio_format = audio.content_type.split("/")[-1].removeprefix("x-")
         audio_bytes = BytesIO(await audio.read())
 
         if audio_format != "wav":
