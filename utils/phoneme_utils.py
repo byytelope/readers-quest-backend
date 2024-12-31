@@ -35,7 +35,7 @@ def calculate_grade(
     recognized_phonemes: str,
     alpha=0.5,
     beta=0.5,
-) -> tuple[float, list[str]]:
+) -> tuple[float, list[dict]]:
     """
     Compute a pronunciation score using word-level and phoneme-level matching.
     Generate feedback for individual words.
@@ -46,37 +46,65 @@ def calculate_grade(
     expected_phoneme_groups = expected_phonemes.split()
     recognized_phoneme_groups = recognized_phonemes.split()
 
-    total_words = max(len(expected_words), len(recognized_words))
-    word_matches = sum(1 for e, r in zip(expected_words, recognized_words) if e == r)
-    wer_score = word_matches / total_words
-
+    sm = SequenceMatcher(None, expected_words, recognized_words)
     phoneme_scores = []
     feedback = []
 
-    for i, expected_word in enumerate(expected_words):
-        if i < len(recognized_words):
-            recognized_word = recognized_words[i]
-            if expected_word != recognized_word:
-                feedback.append(
-                    f"Mispronounced: '{recognized_word}' (expected: '{expected_word}')"
-                )
-            else:
-                feedback.append(f"Correct: '{recognized_word}'")
-
-            if i < len(expected_phoneme_groups) and i < len(recognized_phoneme_groups):
-                phoneme_score = SequenceMatcher(
-                    None, expected_phoneme_groups[i], recognized_phoneme_groups[i]
-                ).ratio()
-
-                phoneme_scores.append(phoneme_score)
-        else:
-            feedback.append(f"Missing word: '{expected_word}'")
-            phoneme_scores.append(0)
-
-    for j in range(len(recognized_words) - len(expected_words)):
-        feedback.append(f"Extra word: '{recognized_words[len(expected_words) + j]}'")
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal":
+            for x in range(i2 - i1):
+                e_idx = i1 + x
+                r_idx = j1 + x
+                feedback.append({"type": "correct", "word": recognized_words[r_idx]})
+                if e_idx < len(expected_phoneme_groups) and r_idx < len(
+                    recognized_phoneme_groups
+                ):
+                    phoneme_score = SequenceMatcher(
+                        None,
+                        expected_phoneme_groups[e_idx],
+                        recognized_phoneme_groups[r_idx],
+                    ).ratio()
+                    phoneme_scores.append(phoneme_score)
+        elif tag == "replace":
+            length = max(i2 - i1, j2 - j1)
+            for x in range(length):
+                e_idx = i1 + x
+                r_idx = j1 + x
+                if e_idx < i2 and r_idx < j2:
+                    feedback.append({
+                        "type": "mispronounced",
+                        "expected": expected_words[e_idx],
+                        "word": recognized_words[r_idx],
+                    })
+                    if e_idx < len(expected_phoneme_groups) and r_idx < len(
+                        recognized_phoneme_groups
+                    ):
+                        phoneme_score = SequenceMatcher(
+                            None,
+                            expected_phoneme_groups[e_idx],
+                            recognized_phoneme_groups[r_idx],
+                        ).ratio()
+                        phoneme_scores.append(phoneme_score)
+                elif e_idx < i2:
+                    feedback.append({"type": "missing", "word": expected_words[e_idx]})
+                elif r_idx < j2:
+                    feedback.append({"type": "extra", "word": recognized_words[r_idx]})
+        elif tag == "delete":
+            for idx in range(i1, i2):
+                feedback.append({"type": "missing", "word": expected_words[idx]})
+        elif tag == "insert":
+            for idx in range(j1, j2):
+                feedback.append({"type": "extra", "word": recognized_words[idx]})
 
     phoneme_score = sum(phoneme_scores) / len(phoneme_scores) if phoneme_scores else 0
+    word_matches = sum(
+        1
+        for op, i1, i2, j1, j2 in sm.get_opcodes()
+        if op == "equal"
+        for _ in range(i2 - i1)
+    )
+    total_words = max(len(expected_words), len(recognized_words))
+    wer_score = word_matches / total_words
     final_score = alpha * wer_score + beta * phoneme_score
 
-    return final_score, feedback
+    return round(final_score, 2), feedback
