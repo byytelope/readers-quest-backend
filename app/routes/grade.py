@@ -8,7 +8,7 @@ from utils.phoneme_utils import calculate_grade, map_to_phonemes
 router = APIRouter(prefix="/grade", tags=["Grade pronunciation"])
 
 
-@router.post("/")
+@router.post("")
 async def grade_pronunciation(
     request: Request, audio: UploadFile = File(...), expected_text: str = Form(...)
 ):

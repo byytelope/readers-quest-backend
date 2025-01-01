@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.models import load_models
-from app.routes import grade, health
+from app.routes import generate, grade, health
 
 
 @asynccontextmanager
@@ -17,3 +17,4 @@ async def lifespan(_: FastAPI):
 client = FastAPI(lifespan=lifespan)
 client.include_router(grade.router)
 client.include_router(health.router)
+client.include_router(generate.router)

@@ -1,9 +1,9 @@
-# pyright: basic
-
 import string
 from difflib import SequenceMatcher
 
-from phonemizer import phonemize
+from phonemizer import phonemize  # pyright: ignore
+
+from utils.types import Feedback
 
 
 def remove_punctuation(sentence: str) -> str:
@@ -33,9 +33,9 @@ def calculate_grade(
     recognized_sentence: str,
     expected_phonemes: str,
     recognized_phonemes: str,
-    alpha=0.5,
-    beta=0.5,
-) -> tuple[float, list[dict]]:
+    alpha: float = 0.5,
+    beta: float = 0.5,
+) -> tuple[float, list[Feedback]]:
     """
     Compute a pronunciation score using word-level and phoneme-level matching.
     Generate feedback for individual words.
@@ -47,8 +47,8 @@ def calculate_grade(
     recognized_phoneme_groups = recognized_phonemes.split()
 
     sm = SequenceMatcher(None, expected_words, recognized_words)
-    phoneme_scores = []
-    feedback = []
+    phoneme_scores: list[float] = []
+    feedback: list[Feedback] = []
 
     for tag, i1, i2, j1, j2 in sm.get_opcodes():
         if tag == "equal":
@@ -99,7 +99,7 @@ def calculate_grade(
     phoneme_score = sum(phoneme_scores) / len(phoneme_scores) if phoneme_scores else 0
     word_matches = sum(
         1
-        for op, i1, i2, j1, j2 in sm.get_opcodes()
+        for op, i1, i2, _, _ in sm.get_opcodes()
         if op == "equal"
         for _ in range(i2 - i1)
     )
