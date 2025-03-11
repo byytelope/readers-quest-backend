@@ -1,7 +1,6 @@
 import string
 from difflib import SequenceMatcher
-
-from phonemizer import phonemize  # pyright: ignore
+from phonemizer import phonemize  # pyright: ignore[reportMissingTypeStubs, reportUnknownVariableType]
 
 from utils.types import Feedback
 
@@ -55,7 +54,11 @@ def calculate_grade(
             for x in range(i2 - i1):
                 e_idx = i1 + x
                 r_idx = j1 + x
-                feedback.append({"type": "correct", "word": recognized_words[r_idx]})
+                feedback.append({
+                    "type": "correct",
+                    "word": recognized_words[r_idx],
+                    "index": e_idx,
+                })
                 if e_idx < len(expected_phoneme_groups) and r_idx < len(
                     recognized_phoneme_groups
                 ):
@@ -73,8 +76,9 @@ def calculate_grade(
                 if e_idx < i2 and r_idx < j2:
                     feedback.append({
                         "type": "mispronounced",
-                        "expected": expected_words[e_idx],
                         "word": recognized_words[r_idx],
+                        "expected": expected_words[e_idx],
+                        "index": e_idx,
                     })
                     if e_idx < len(expected_phoneme_groups) and r_idx < len(
                         recognized_phoneme_groups
@@ -86,12 +90,20 @@ def calculate_grade(
                         ).ratio()
                         phoneme_scores.append(phoneme_score)
                 elif e_idx < i2:
-                    feedback.append({"type": "missing", "word": expected_words[e_idx]})
+                    feedback.append({
+                        "type": "missing",
+                        "word": expected_words[e_idx],
+                        "index": e_idx,
+                    })
                 elif r_idx < j2:
                     feedback.append({"type": "extra", "word": recognized_words[r_idx]})
         elif tag == "delete":
             for idx in range(i1, i2):
-                feedback.append({"type": "missing", "word": expected_words[idx]})
+                feedback.append({
+                    "type": "missing",
+                    "word": expected_words[idx],
+                    "index": idx,
+                })
         elif tag == "insert":
             for idx in range(j1, j2):
                 feedback.append({"type": "extra", "word": recognized_words[idx]})
