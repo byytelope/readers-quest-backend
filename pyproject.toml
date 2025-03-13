@@ -1,5 +1,5 @@
 [project]
-name = "readers-quest-ai"
+name = "readers-quest-backend"
 version = "0.1.0"
 requires-python = "==3.12.*"
 description = "Grade pronunciation of words."
