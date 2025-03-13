@@ -1,6 +1,7 @@
 import string
 from difflib import SequenceMatcher
-from phonemizer import phonemize  # pyright: ignore[reportMissingTypeStubs, reportUnknownVariableType]
+
+from phonemizer.phonemize import phonemize
 
 from utils.types import Feedback
 

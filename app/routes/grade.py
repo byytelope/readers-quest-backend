@@ -10,7 +10,9 @@ router = APIRouter(prefix="/grade", tags=["Grade pronunciation"])
 
 @router.post("")
 async def grade_pronunciation(
-    request: Request, audio: UploadFile = File(...), expected_text: str = Form(...)
+    request: Request,
+    audio: UploadFile = File(...),
+    expected_text: str = Form(...),
 ):
     """
     Recognize phonemes from an uploaded audio file.

@@ -4,3 +4,4 @@ audio
 models
 **/__pycache__
 .env
+.venv
