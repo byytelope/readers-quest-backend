@@ -28,27 +28,6 @@ def process_audio(audio_bytes: BytesIO, models: MLModels) -> tuple[str, str, boo
     """
     waveform, _ = librosa.load(audio_bytes, sr=16000)
 
-    # emotion_features = models.emotion_feature_extractor(
-    #     waveform, sampling_rate=16000, padding=True, return_tensors="pt"
-    # )
-
-    # print("HERE")
-
-    # with torch.no_grad():
-    #     input_values = emotion_features.input_values
-    #     if not isinstance(input_values, torch.Tensor):
-    #         input_values = torch.tensor(input_values)
-
-    #     outputs = models.emotion_model(input_values)
-    #     predictions = torch.nn.functional.softmax(outputs.logits.mean(dim=1), dim=-1)
-    #     predicted_label = torch.argmax(predictions, dim=-1)
-    #     emotion = models.emotion_model.config.id2label[int(predicted_label.item())]
-
-    #     print(emotion)
-
-    # frustrated = emotion in ["sad", "angry"]
-    frustrated = False
-
     input_values = models.main_processor(
         waveform, return_tensors="pt", sampling_rate=16000
     ).input_values
@@ -58,5 +37,18 @@ def process_audio(audio_bytes: BytesIO, models: MLModels) -> tuple[str, str, boo
 
     transcription = models.main_processor.batch_decode(predicted_ids)[0]
     phonemes = map_to_phonemes(transcription)
+
+    emotion_inputs = models.emotion_processor(
+        waveform, sampling_rate=16000, return_tensors="pt", padding=True
+    )
+
+    with torch.no_grad():
+        logits = models.emotion_model(**emotion_inputs).logits
+        predicted_id = torch.argmax(logits, dim=-1).item()
+
+    emotions = ["neutral", "happy", "angry", "sad"]
+    print(emotions[int(predicted_id)])
+
+    frustrated = emotions[int(predicted_id)] in ("angry", "sad")
 
     return transcription, phonemes, frustrated
