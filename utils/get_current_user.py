@@ -15,7 +15,7 @@ security = HTTPBearer()
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-):
+) -> dict[str, str]:
     """
     Validate the JWT token from Supabase.
     """
@@ -36,7 +36,7 @@ async def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        return {"id": user_id, "email": payload.get("email")}
+        return {"id": str(user_id), "email": str(payload.get("email"))}
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -6,7 +6,7 @@ from app.server import client
 
 
 class TestHealthCheck(unittest.TestCase):
-    test_client = TestClient(client)
+    test_client: TestClient = TestClient(client)
 
     def test_health_check(self):
         print("RUNNING TEST: Health")
