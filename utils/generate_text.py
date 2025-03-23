@@ -10,11 +10,11 @@ client = AsyncOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 async def generate_text(prompt: str, max_tokens: int = 100) -> str:
     """
-    Calls the OpenAI API with the given prompt and returns the generated text.
+    Calls an LLM API with the given prompt and returns the generated text.
     """
     try:
         response = await client.chat.completions.create(
-            model="o1-mini",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "user", "content": prompt},
             ],
